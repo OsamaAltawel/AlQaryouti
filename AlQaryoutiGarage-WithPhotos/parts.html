@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Parts & Cars – Al Qaryouti Garage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    /* ===== GALLERY STYLES ===== */
+    .gallery-section { background: var(--navy-dark); padding: 80px 0; }
+    .gallery-section .section-title { color: var(--white); }
+    .gallery-section .section-title::after { background: var(--gold); }
+    .gallery-intro {
+      text-align: center; color: rgba(255,255,255,0.6);
+      max-width: 600px; margin: -28px auto 48px;
+      font-size: 1.05rem; line-height: 1.7;
+    }
+
+    /* Masonry-style grid */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      grid-template-rows: auto;
+      gap: 12px;
+    }
+
+    .gallery-item {
+      position: relative; overflow: hidden;
+      border-radius: 10px;
+      cursor: pointer;
+      background: var(--navy);
+      border: 2px solid rgba(245,197,24,0.15);
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .gallery-item:hover { border-color: var(--gold); transform: scale(1.01); }
+
+    /* Layout positions */
+    .gallery-item:nth-child(1) { grid-column: span 8; grid-row: span 2; min-height: 420px; }
+    .gallery-item:nth-child(2) { grid-column: span 4; min-height: 200px; }
+    .gallery-item:nth-child(3) { grid-column: span 4; min-height: 200px; }
+    .gallery-item:nth-child(4) { grid-column: span 4; min-height: 280px; }
+    .gallery-item:nth-child(5) { grid-column: span 4; min-height: 280px; }
+    .gallery-item:nth-child(6) { grid-column: span 4; min-height: 280px; }
+    .gallery-item:nth-child(7) { grid-column: span 6; min-height: 300px; }
+    .gallery-item:nth-child(8) { grid-column: span 6; min-height: 300px; }
+
+    .gallery-item img {
+      width: 100%; height: 100%; object-fit: cover;
+      display: block; transition: transform 0.5s ease;
+    }
+    .gallery-item:hover img { transform: scale(1.06); }
+
+    /* Caption overlay */
+    .gallery-caption {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: linear-gradient(to top, rgba(10,18,38,0.92) 0%, transparent 100%);
+      padding: 28px 20px 18px;
+      transform: translateY(4px);
+      transition: transform 0.3s;
+    }
+    .gallery-item:hover .gallery-caption { transform: translateY(0); }
+    .gallery-caption-title {
+      font-family: var(--font-heading);
+      font-size: 1.05rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--gold); margin-bottom: 4px;
+    }
+    .gallery-caption-desc {
+      font-size: 0.85rem; color: rgba(255,255,255,0.75);
+      line-height: 1.45;
+    }
+
+    /* Gold corner tag */
+    .gallery-tag {
+      position: absolute; top: 14px; left: 14px;
+      background: var(--gold); color: var(--navy-dark);
+      font-family: var(--font-heading); font-size: 0.72rem; font-weight: 800;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 4px 10px; border-radius: 4px;
+    }
+
+    /* Lightbox */
+    .lightbox {
+      display: none; position: fixed; inset: 0; z-index: 9999;
+      background: rgba(5,10,25,0.95);
+      align-items: center; justify-content: center;
+      flex-direction: column;
+    }
+    .lightbox.open { display: flex; }
+    .lightbox img {
+      max-width: 92vw; max-height: 82vh;
+      object-fit: contain; border-radius: 10px;
+      border: 2px solid rgba(245,197,24,0.3);
+      box-shadow: 0 20px 80px rgba(0,0,0,0.7);
+    }
+    .lightbox-caption {
+      margin-top: 18px; text-align: center;
+      color: rgba(255,255,255,0.75); font-size: 0.95rem;
+    }
+    .lightbox-caption strong { color: var(--gold); }
+    .lightbox-close {
+      position: fixed; top: 20px; right: 28px;
+      font-size: 2.2rem; color: var(--gold);
+      cursor: pointer; background: none; border: none; line-height: 1;
+    }
+    .lightbox-nav {
+      position: fixed; top: 50%; transform: translateY(-50%);
+      font-size: 2.5rem; color: var(--gold);
+      cursor: pointer; background: rgba(26,39,68,0.7);
+      border: none; padding: 8px 16px; border-radius: 6px;
+      transition: background 0.2s;
+    }
+    .lightbox-nav:hover { background: rgba(245,197,24,0.2); }
+    .lightbox-prev { left: 16px; }
+    .lightbox-next { right: 16px; }
+
+    @media (max-width: 768px) {
+      .gallery-grid { grid-template-columns: 1fr 1fr; }
+      .gallery-item:nth-child(n) { grid-column: span 1; grid-row: span 1; min-height: 200px; }
+      .gallery-item:nth-child(1) { grid-column: span 2; min-height: 260px; }
+      .gallery-item:nth-child(7),
+      .gallery-item:nth-child(8) { grid-column: span 1; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="logo">
+      <span class="logo-icon">⚙</span>
+      <div>
+        <div class="logo-name">AL QARYOUTI</div>
+        <div class="logo-sub" data-en="GARAGE · Auto Spare Parts" data-ar="كراج · قطع غيار السيارات">GARAGE · Auto Spare Parts</div>
+      </div>
+    </a>
+    <div class="nav-right">
+      <button class="lang-toggle" id="langToggle"><span id="langLabel">🌐 العربية</span></button>
+      <button class="burger" id="burger">&#9776;</button>
+    </div>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="index.html" data-en="Home" data-ar="الرئيسية">Home</a></li>
+      <li><a href="parts.html" class="active" data-en="Parts & Cars" data-ar="القطع والسيارات">Parts & Cars</a></li>
+      <li><a href="contact.html" data-en="Contact Us" data-ar="اتصل بنا">Contact Us</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<section class="page-header">
+  <div class="container">
+    <p class="hero-eyebrow" data-en="What We Offer" data-ar="ما نقدمه">What We Offer</p>
+    <h1><span data-en="Parts &amp;" data-ar="القطع">Parts &amp;</span> <span class="accent" data-en="Available Cars" data-ar="والسيارات المتاحة">Available Cars</span></h1>
+    <p class="page-header-desc" data-en="Browse our range of spare parts and see our yard — hundreds of vehicles and parts ready for you." data-ar="تصفح مخزوننا من قطع الغيار وشاهد ساحتنا — مئات المركبات والقطع في انتظارك.">Browse our range of spare parts and see our yard — hundreds of vehicles and parts ready for you.</p>
+  </div>
+</section>
+
+<!-- ===== PHOTO GALLERY ===== -->
+<section class="gallery-section">
+  <div class="container">
+    <h2 class="section-title" data-en="Inside Our Yard" data-ar="داخل ساحتنا">Inside Our Yard</h2>
+    <p class="gallery-intro" data-en="Take a look inside Al Qaryouti Garage — a massive stock of American vehicles and parts. What you see here is what we can pull from. Click any photo to enlarge." data-ar="ألق نظرة داخل كراج القريوتي — مخزون ضخم من السيارات والقطع الأمريكية. انقر على أي صورة للتكبير.">Take a look inside Al Qaryouti Garage — a massive stock of American vehicles and parts. What you see here is what we can pull from. Click any photo to enlarge.</p>
+
+    <div class="gallery-grid">
+
+      <!-- 1 — Large hero image -->
+      <div class="gallery-item" onclick="openLightbox(0)">
+        <span class="gallery-tag" data-en="In Stock" data-ar="متوفر">In Stock</span>
+        <img src="img-01.jpg" alt="Stacked vehicles – Chevrolet, GMC, Jeep, Dodge"/>
+        <div class="gallery-caption">
+          <div class="gallery-caption-title" data-en="Full Vehicle Bodies" data-ar="هياكل سيارات كاملة">Full Vehicle Bodies</div>
+          <div class="gallery-caption-desc" data-en="Chevrolet, GMC, Jeep & Dodge — stacked and ready to pull parts from." data-ar="شيفروليه، GMC، جيب ودودج — مرصوفة وجاهزة لسحب القطع.">Chevrolet, GMC, Jeep & Dodge — stacked and ready to pull parts from.</div>
+        </div>
+      </div>
+
+      <!-- 2 -->
+      <div class="gallery-item" onclick="openLightbox(1)">
+        <span class="gallery-tag" data-en="Parts" data-ar="قطع">Parts</span>
+        <img src="img-02.jpg" alt="Shelves of boxed spare parts"/>
+        <div class="gallery-caption">
+          <div class="gallery-caption-title" data-en="Boxed Parts Shelves" data-ar="رفوف القطع المعبأة">Boxed Parts Shelves</div>
+          <div class="gallery-caption-desc" data-en="Hundreds of labelled parts ready for same-day pickup." data-ar="مئات القطع المصنفة جاهزة للاستلام في نفس اليوم.">Hundreds of labelled parts ready for same-day pickup.</div>
+        </div>
+      </div>
+
+      <!-- 3 -->
+      <div class="gallery-item" onclick="openLightbox(2)">
+        <span class="gallery-tag" data-en="Yard" data-ar="الساحة">Yard</span>
+        <img src="img-03.jpg" alt="Ford, Chevrolet, Jeep vehicles stacked"/>
+        <div class="gallery-caption">
+          <div class="gallery-caption-title" data-en="Ford, Chevy & Jeep Stack" data-ar="فورد، شيفروليه وجيب">Ford, Chevy & Jeep Stack</div>
+          <div class="gallery-caption-desc" data-en="Multi-level racking system keeps our stock organized and accessible." data-ar="نظام رفوف متعدد المستويات يبقي مخزوننا منظماً وسهل الوصول.">Multi-level racking system keeps our stock organized and accessible.</div>
+        </div>
+      </div>
+
+      <!-- 4 -->
+      <div class="gallery-item" onclick="openLightbox(3)">
+        <span class="gallery-tag" data-en="Dodge & Cadillac" data-ar="دودج وكاديلاك">Dodge & Cadillac</span>
+        <img src="img-04.jpg" alt="Dodge RAM and Cadillac vehicle fronts stacked"/>
+        <div class="gallery-caption">
+          <div class="gallery-caption-title" data-en="Dodge RAM & Cadillac" data-ar="دودج RAM وكاديلاك">Dodge RAM & Cadillac</div>
+          <div class="gallery-caption-desc" data-en="Body parts, grilles, lights and more available." data-ar="قطع الهيكل، الشبكات، الأضواء والمزيد متوفرة.">Body parts, grilles, lights and more available.</div>
+        </div>
+      </div>
+
+      <!-- 5 -->
+      <div class="gallery-item" onclick="openLightbox(4)">
+        <span class="gallery-tag" data-en="Full Yard View" data-ar="منظر الساحة الكاملة">Full Yard View</span>
+        <img src="img-05.jpg" alt="Full view of vehicle yard with Chevrolet, GMC, Ford, Jeep, Hummer"/>
+        <div class="gallery-caption">
+          <div class="gallery-caption-title" data-en="The Yard — Full View" data-ar="الساحة — منظر شامل">The Yard — Full View</div>
+          <div class="gallery-caption-desc" data-en="A wide view of our multi-brand stock — Chevy, Ford, GMC, Jeep, Hummer all in one place." data-ar="نظرة شاملة على مخزوننا متعدد العلامات في مكان واحد.">A wide view of our multi-brand stock — Chevy, Ford, GMC, Jeep, Hummer all in one place.</div>
+        </div>
+      </div>
+
+      <!-- 6 -->
+      <div class="gallery-item" onclick="openLightbox(5)">
+        <span class="gallery-tag" data-en="Ford & Dodge" data-ar="فورد ودودج">Ford & Dodge</span>
+        <img src="img-06.jpg" alt="Blue Ford F-150 Raptor and black Dodge Challenger fronts"/>
+        <div class="gallery-caption">
+          <div class="gallery-caption-title" data-en="Ford Raptor & Dodge Challenger" data-ar="فورد رابتور ودودج تشالنجر">Ford Raptor & Dodge Challenger</div>
+          <div class="gallery-caption-desc" data-en="Complete front ends with lighting, bumpers and grilles in stock." data-ar="واجهات أمامية كاملة مع أضواء وصدامات وشبكات متوفرة.">Complete front ends with lighting, bumpers and grilles in stock.</div>
+        </div>
+      </div>
+
+      <!-- 7 — Wide -->
+      <div class="gallery-item" onclick="openLightbox(6)">
+        <span class="gallery-tag" data-en="Transmissions" data-ar="ناقلات الحركة">Transmissions</span>
+        <img src="img-07.jpg" alt="Rows of gearboxes and transmission parts on shelves"/>
+        <div class="gallery-caption">
+          <div class="gallery-caption-title" data-en="Gearboxes & Transmissions" data-ar="صناديق التروس وناقلات الحركة">Gearboxes & Transmissions</div>
+          <div class="gallery-caption-desc" data-en="An extensive outdoor rack of transmissions, transfer cases and differentials for all major American brands." data-ar="رف خارجي ضخم من ناقلات الحركة وصناديق التحويل والتفاضل لجميع العلامات الأمريكية الكبرى.">An extensive outdoor rack of transmissions, transfer cases and differentials for all major American brands.</div>
+        </div>
+      </div>
+
+      <!-- 8 — Wide -->
+      <div class="gallery-item" onclick="openLightbox(7)">
+        <span class="gallery-tag" data-en="Jeep, Hummer & Ford" data-ar="جيب، هامر وفورد">Jeep, Hummer & Ford</span>
+        <img src="img-08.jpg" alt="Jeep Wrangler, Hummer H2 and Ford Raptor stacked in garage"/>
+        <div class="gallery-caption">
+          <div class="gallery-caption-title" data-en="Jeep Wrangler · Hummer H2 · Ford Raptor" data-ar="جيب رانجلر · هامر H2 · فورد رابتور">Jeep Wrangler · Hummer H2 · Ford Raptor</div>
+          <div class="gallery-caption-desc" data-en="Rare and popular models always in stock — body, mechanical and electrical parts available." data-ar="الموديلات النادرة والشعبية متوفرة دائماً — قطع هيكل وميكانيكية وكهربائية.">Rare and popular models always in stock — body, mechanical and electrical parts available.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <button class="lightbox-nav lightbox-prev" onclick="changePhoto(-1)">‹</button>
+  <img id="lightbox-img" src="" alt=""/>
+  <div class="lightbox-caption" id="lightbox-caption"></div>
+  <button class="lightbox-nav lightbox-next" onclick="changePhoto(1)">›</button>
+</div>
+
+<!-- PARTS CATEGORIES -->
+<section class="section">
+  <div class="container">
+    <h2 class="section-title" data-en="Spare Parts Categories" data-ar="فئات قطع الغيار">Spare Parts Categories</h2>
+    <div class="parts-grid">
+
+      <div class="part-card">
+        <div class="part-icon">🔧</div>
+        <h3 data-en="Engine Parts" data-ar="قطع المحرك">Engine Parts</h3>
+        <ul>
+          <li data-en="Pistons & Rings" data-ar="المكابس والحلقات">Pistons & Rings</li>
+          <li data-en="Crankshafts" data-ar="عمود الكرنك">Crankshafts</li>
+          <li data-en="Camshafts" data-ar="عمود الكامة">Camshafts</li>
+          <li data-en="Gaskets & Seals" data-ar="الحشيات والأختام">Gaskets & Seals</li>
+          <li data-en="Timing Chains" data-ar="سلاسل التوقيت">Timing Chains</li>
+        </ul>
+        <a href="contact.html" class="part-link" data-en="Inquire →" data-ar="← استفسر">Inquire →</a>
+      </div>
+
+      <div class="part-card">
+        <div class="part-icon">🛞</div>
+        <h3 data-en="Suspension & Steering" data-ar="التعليق والتوجيه">Suspension & Steering</h3>
+        <ul>
+          <li data-en="Shock Absorbers" data-ar="ممتصات الصدمات">Shock Absorbers</li>
+          <li data-en="Control Arms" data-ar="أذرع التحكم">Control Arms</li>
+          <li data-en="Ball Joints" data-ar="مفاصل كروية">Ball Joints</li>
+          <li data-en="Tie Rod Ends" data-ar="نهايات قضبان التوجيه">Tie Rod Ends</li>
+          <li data-en="Steering Racks" data-ar="رفوف التوجيه">Steering Racks</li>
+        </ul>
+        <a href="contact.html" class="part-link" data-en="Inquire →" data-ar="← استفسر">Inquire →</a>
+      </div>
+
+      <div class="part-card">
+        <div class="part-icon">🛑</div>
+        <h3 data-en="Brakes" data-ar="الفرامل">Brakes</h3>
+        <ul>
+          <li data-en="Brake Pads & Shoes" data-ar="أحذية وتيل الفرامل">Brake Pads & Shoes</li>
+          <li data-en="Brake Discs & Drums" data-ar="أقراص وطبول الفرامل">Brake Discs & Drums</li>
+          <li data-en="Calipers" data-ar="كاليبر الفرامل">Calipers</li>
+          <li data-en="Brake Lines" data-ar="خطوط الفرامل">Brake Lines</li>
+          <li data-en="Master Cylinders" data-ar="أسطوانات رئيسية">Master Cylinders</li>
+        </ul>
+        <a href="contact.html" class="part-link" data-en="Inquire →" data-ar="← استفسر">Inquire →</a>
+      </div>
+
+      <div class="part-card">
+        <div class="part-icon">⚡</div>
+        <h3 data-en="Electrical & Lighting" data-ar="الكهرباء والإضاءة">Electrical & Lighting</h3>
+        <ul>
+          <li data-en="Alternators" data-ar="المولدات">Alternators</li>
+          <li data-en="Starters" data-ar="موتورات الاستارت">Starters</li>
+          <li data-en="Sensors & Switches" data-ar="الحساسات والمفاتيح">Sensors & Switches</li>
+          <li data-en="Headlights & Taillights" data-ar="الأضواء الأمامية والخلفية">Headlights & Taillights</li>
+          <li data-en="Fuse Boxes" data-ar="صناديق الفيوزات">Fuse Boxes</li>
+        </ul>
+        <a href="contact.html" class="part-link" data-en="Inquire →" data-ar="← استفسر">Inquire →</a>
+      </div>
+
+      <div class="part-card">
+        <div class="part-icon">🌡️</div>
+        <h3 data-en="Cooling System" data-ar="نظام التبريد">Cooling System</h3>
+        <ul>
+          <li data-en="Radiators" data-ar="الرادياتيرات">Radiators</li>
+          <li data-en="Water Pumps" data-ar="مضخات الماء">Water Pumps</li>
+          <li data-en="Thermostats" data-ar="الثرموستات">Thermostats</li>
+          <li data-en="Cooling Fans" data-ar="مراوح التبريد">Cooling Fans</li>
+          <li data-en="Hoses & Clamps" data-ar="الخراطيم والمشابك">Hoses & Clamps</li>
+        </ul>
+        <a href="contact.html" class="part-link" data-en="Inquire →" data-ar="← استفسر">Inquire →</a>
+      </div>
+
+      <div class="part-card">
+        <div class="part-icon">🔄</div>
+        <h3 data-en="Transmission" data-ar="ناقل الحركة">Transmission</h3>
+        <ul>
+          <li data-en="Gearboxes" data-ar="صناديق التروس">Gearboxes</li>
+          <li data-en="Transfer Cases" data-ar="علب التحويل">Transfer Cases</li>
+          <li data-en="Clutch Kits" data-ar="طقم الكلتش">Clutch Kits</li>
+          <li data-en="Torque Converters" data-ar="محولات العزم">Torque Converters</li>
+          <li data-en="Driveshafts" data-ar="أعمدة القيادة">Driveshafts</li>
+        </ul>
+        <a href="contact.html" class="part-link" data-en="Inquire →" data-ar="← استفسر">Inquire →</a>
+      </div>
+
+      <div class="part-card">
+        <div class="part-icon">🛡️</div>
+        <h3 data-en="Body Parts" data-ar="قطع الهيكل">Body Parts</h3>
+        <ul>
+          <li data-en="Bumpers & Fenders" data-ar="الصدامات والأجنحة">Bumpers & Fenders</li>
+          <li data-en="Hoods & Doors" data-ar="الغطاء والأبواب">Hoods & Doors</li>
+          <li data-en="Mirrors" data-ar="المرايا">Mirrors</li>
+          <li data-en="Grilles" data-ar="الشبكات الأمامية">Grilles</li>
+          <li data-en="Glass & Windshields" data-ar="الزجاج والزجاج الأمامي">Glass & Windshields</li>
+        </ul>
+        <a href="contact.html" class="part-link" data-en="Inquire →" data-ar="← استفسر">Inquire →</a>
+      </div>
+
+      <div class="part-card">
+        <div class="part-icon">🛢️</div>
+        <h3 data-en="Filters & Fluids" data-ar="الفلاتر والسوائل">Filters & Fluids</h3>
+        <ul>
+          <li data-en="Oil Filters" data-ar="فلاتر الزيت">Oil Filters</li>
+          <li data-en="Air Filters" data-ar="فلاتر الهواء">Air Filters</li>
+          <li data-en="Fuel Filters" data-ar="فلاتر الوقود">Fuel Filters</li>
+          <li data-en="Engine Oils" data-ar="زيوت المحرك">Engine Oils</li>
+          <li data-en="Brake & Coolant Fluids" data-ar="سائل الفرامل ومضاد التجمد">Brake & Coolant Fluids</li>
+        </ul>
+        <a href="contact.html" class="part-link" data-en="Inquire →" data-ar="← استفسر">Inquire →</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- BRANDS -->
+<section class="section brands-detail">
+  <div class="container">
+    <h2 class="section-title" data-en="Brands We Cover" data-ar="العلامات التي نغطيها">Brands We Cover</h2>
+    <div class="brand-cards">
+      <div class="brand-card"><div class="brand-card-name">Ford</div><p data-en="F-150, Explorer, Expedition, Ranger, Mustang, Edge and more" data-ar="F-150، إكسبلورر، إكسبيديشن، رينجر، موستانج، إيدج والمزيد">F-150, Explorer, Expedition, Ranger, Mustang, Edge and more</p></div>
+      <div class="brand-card"><div class="brand-card-name">GMC</div><p data-en="Sierra, Yukon, Terrain, Canyon, Envoy and full lineup" data-ar="سييرا، يوكون، تيرين، كانيون، إنفوي وكامل الطراز">Sierra, Yukon, Terrain, Canyon, Envoy and full lineup</p></div>
+      <div class="brand-card"><div class="brand-card-name">Jeep</div><p data-en="Wrangler, Grand Cherokee, Cherokee, Compass, Gladiator" data-ar="رانجلر، جراند شيروكي، شيروكي، كومباس، جلاديتور">Wrangler, Grand Cherokee, Cherokee, Compass, Gladiator</p></div>
+      <div class="brand-card"><div class="brand-card-name">Hummer</div><p data-en="H2, H3 — classic and modern parts in stock" data-ar="H1، H2، H3 — قطع كلاسيكية وحديثة متوفرة">H1, H2, H3 — classic and modern parts in stock</p></div>
+      <div class="brand-card"><div class="brand-card-name">Chevrolet</div><p data-en="Silverado, Tahoe, Suburban, Camaro, Blazer and full range" data-ar="سيلفرادو، تاهو، سوبربان، كامارو، بليزر وكامل الطراز">Silverado, Tahoe, Suburban, Camaro, Blazer and full range</p></div>
+      <div class="brand-card"><div class="brand-card-name">Dodge</div><p data-en="RAM, Durango, Charger, Challenger, Journey and more" data-ar="RAM، دورانجو، شارجر، تشالنجر، جورني والمزيد">RAM, Durango, Charger, Challenger, Journey and more</p></div>
+    </div>
+  </div>
+</section>
+
+
+<section class="cta-banner">
+  <div class="container cta-inner">
+    <div>
+      <h2 data-en="Don't see what you need?" data-ar="لا تجد ما تبحث عنه؟">Don't see what you need?</h2>
+      <p data-en="We can source almost any part — just ask us." data-ar="يمكننا توفير تقريباً أي قطعة — فقط اسألنا.">We can source almost any part — just ask us.</p>
+    </div>
+    <div class="cta-actions">
+      <a href="tel:55306049" class="btn btn-primary">📞 55306049</a>
+      <a href="contact.html" class="btn btn-outline-light" data-en="Send Inquiry" data-ar="أرسل استفساراً">Send Inquiry</a>
+    </div>
+  </div>
+</section>
+
+
+<footer class="footer">
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <div class="logo-name">AL QARYOUTI GARAGE</div>
+      <div class="logo-sub">كراج القريوتي لقطع غيار السيارات</div>
+    </div>
+    <div class="footer-links">
+      <a href="index.html" data-en="Home" data-ar="الرئيسية">Home</a>
+      <a href="parts.html" data-en="Parts & Cars" data-ar="القطع والسيارات">Parts & Cars</a>
+      <a href="contact.html" data-en="Contact" data-ar="اتصل بنا">Contact</a>
+    </div>
+    <div class="footer-info">
+      <div> 55306049</div>
+      <div> 55116464</div>
+      <div data-en="C.R: 83739/1 · Qatar" data-ar="س.ت: 83739/1 · قطر">C.R: 83739/1 · Qatar</div>
+    </div>
+  </div>
+  <div class="footer-bottom" data-en="© 2025 Al Qaryouti Garage. All rights reserved." data-ar="© 2025 كراج القريوتي. جميع الحقوق محفوظة.">© 2025 Al Qaryouti Garage. All rights reserved.</div>
+</footer>
+
+
+<script>
+  const photos = [
+    { src: 'img-01.jpg', en: 'Full Vehicle Bodies — Chevrolet, GMC, Jeep & Dodge', ar: 'هياكل سيارات كاملة — شيفروليه، GMC، جيب ودودج' },
+    { src: 'img-02.jpg', en: 'Boxed Parts Shelves — hundreds of labelled parts', ar: 'رفوف القطع المعبأة — مئات القطع المصنفة' },
+    { src: 'img-03.jpg', en: 'Ford, Chevrolet & Jeep — multi-level racking', ar: 'فورد، شيفروليه وجيب — رفوف متعددة المستويات' },
+    { src: 'img-04.jpg', en: 'Dodge RAM & Cadillac — body parts available', ar: 'دودج RAM وكاديلاك — قطع الهيكل متوفرة' },
+    { src: 'img-05.jpg', en: 'The Full Yard — Chevy, Ford, GMC, Jeep, Hummer', ar: 'الساحة الكاملة — شيفي، فورد، GMC، جيب، هامر' },
+    { src: 'img-06.jpg', en: 'Ford Raptor & Dodge Challenger — front ends in stock', ar: 'فورد رابتور ودودج تشالنجر — واجهات أمامية متوفرة' },
+    { src: 'img-07.jpg', en: 'Gearboxes & Transmissions — full rack in stock', ar: 'صناديق التروس وناقلات الحركة — رف كامل متوفر' },
+    { src: 'img-08.jpg', en: 'Jeep Wrangler · Hummer H2 · Ford Raptor', ar: 'جيب رانجلر · هامر H2 · فورد رابتور' },
+  ];
+
+  let current = 0;
+  const lang = () => document.documentElement.getAttribute('lang') || 'en';
+
+  function openLightbox(index) {
+    current = index;
+    updateLightbox();
+    document.getElementById('lightbox').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  function changePhoto(dir) {
+    current = (current + dir + photos.length) % photos.length;
+    updateLightbox();
+  }
+  function updateLightbox() {
+    const p = photos[current];
+    document.getElementById('lightbox-img').src = p.src;
+    const cap = lang() === 'ar' ? p.ar : p.en;
+    document.getElementById('lightbox-caption').innerHTML = `<strong>${current + 1} / ${photos.length}</strong> &nbsp;—&nbsp; ${cap}`;
+  }
+
+  // Close on backdrop click
+  document.getElementById('lightbox').addEventListener('click', function(e) {
+    if (e.target === this) closeLightbox();
+  });
+  // Keyboard navigation
+  document.addEventListener('keydown', function(e) {
+    const lb = document.getElementById('lightbox');
+    if (!lb.classList.contains('open')) return;
+    if (e.key === 'ArrowRight') changePhoto(1);
+    if (e.key === 'ArrowLeft') changePhoto(-1);
+    if (e.key === 'Escape') closeLightbox();
+  });
+</script>
+
+<script src="lang.js"></script>
+<script>
+  document.getElementById('burger').addEventListener('click', () => {
+    document.getElementById('nav-links').classList.toggle('open');
+  });
+</script>
+</body>
+</html>
